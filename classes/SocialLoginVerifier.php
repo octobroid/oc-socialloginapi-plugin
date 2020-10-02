@@ -41,4 +41,35 @@ class SocialLoginVerifier
             return false;
         }
     }
+
+    public function verifyGoogle($email, $access_token)
+    {
+        try {
+            $client = new \GuzzleHttp\Client();
+            $res = $client->get('https://www.googleapis.com/oauth2/v3/userinfo', [
+                'query' => compact('access_token'),
+            ]);
+
+            $userProfile = json_decode($res->getBody());
+            $photoURL = isset($userProfile->picture) && $userProfile->picture ? $userProfile->picture : null;
+            $user = \Flynsarmy\SocialLogin\Classes\UserManager::instance()->find(
+                [
+                    'provider_id'    => 'Google',
+                    'provider_token' => $userProfile->sub,
+                ],
+                [
+                    'token'           => $userProfile->sub,
+                    'email'           => $email,
+                    'username'        => $email,
+                    'name'            => $userProfile->name,
+                    'avatar_original' => $photoURL,
+                ]
+            );
+
+            return $user->id;
+        } catch (\Exception $e) {
+            throw $e;
+            return false;
+        }
+    }
 }
