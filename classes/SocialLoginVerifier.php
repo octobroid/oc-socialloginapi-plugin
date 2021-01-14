@@ -72,19 +72,19 @@ class SocialLoginVerifier
         }
     }
 
-    public function verifyApple($email, $idToken)
+    public function verifyApple($email, $access_token)
     {
         try {
-            if(env('Firebase_Login')!= null){
+            if(env('Firebase_Login') != null){
                 $client = new \GuzzleHttp\Client();
-                $url = 'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key='.env('Firebase_Login');
+                $url = 'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' . env('Firebase_Login');
     
                 $res = $client->post($url, [
                     'headers' => [
                         'Content-Type' => 'application/json',
                     ],
                     'body' => json_encode([
-                        'idToken' => $idToken,
+                        'idToken' => $access_token,
                     ])
                 ]);
                 
@@ -100,6 +100,45 @@ class SocialLoginVerifier
                         'email'           => $userProfile->email,
                         'username'        => $userProfile->email,
                         'name'            => $userProfile->displayName,
+                    ]
+                );
+                return $user->id;
+            }
+
+        } catch (\Exception $e) {
+            throw $e;
+            return false;
+        }
+    }
+
+    public function verifyPhone($email, $access_token)
+    {
+        try {
+            if(env('Firebase_Login') != null){
+                $client = new \GuzzleHttp\Client();
+                $url = 'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' . env('Firebase_Login');
+    
+                $res = $client->post($url, [
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                    ],
+                    'body' => json_encode([
+                        'idToken' => $access_token,
+                    ])
+                ]);
+                
+                $userProfile = json_decode($res->getBody())->users[0];
+    
+                $user = \Flynsarmy\SocialLogin\Classes\UserManager::instance()->find(
+                    [
+                        'provider_id'    => 'Phone',
+                        'provider_token' => $userProfile->localId,
+                    ],
+                    [
+                        'token'           => $userProfile->localId,
+                        'email'           => $userProfile->email,
+                        'username'        => $userProfile->email,
+                        'name'            => $userProfile->displayName
                     ]
                 );
                 return $user->id;
