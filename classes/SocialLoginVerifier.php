@@ -1,7 +1,6 @@
 <?php namespace Octobro\SocialLoginAPI\Classes;
 
 use Auth;
-use Ixudra\Curl\CurlService;
 class SocialLoginVerifier
 {
     public function verifyFacebook($user_id, $access_token)
@@ -76,35 +75,35 @@ class SocialLoginVerifier
     public function verifyApple($email, $idToken)
     {
         try {
-            $curl = new CurlService();
-
-            $url = 'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyCH4LMCogHOGjdxUd0ul0fvblZRfe3lLcA';
-            $res = $curl->to($url)
-            ->withData([
-                'idToken'   => $idToken
-            ])
-            ->withHeaders([
-                'Content-Type' => 'application/json'
-            ])
-            ->asJson()
-            ->post();
-            
-            $userProfile = $res->users[0];
-
-            $user = \Flynsarmy\SocialLogin\Classes\UserManager::instance()->find(
-                [
-                    'provider_id'    => 'Apple',
-                    'provider_token' => $userProfile->localId,
-                ],
-                [
-                    'token'           => $userProfile->localId,
-                    'email'           => $userProfile->email,
-                    'username'        => $userProfile->email,
-                    'name'            => $userProfile->displayName,
-                ]
-            );
-
-            return $user->id;
+            if(env('Firebase_Login')!= null){
+                $client = new \GuzzleHttp\Client();
+                $url = 'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key='.env('Firebase_Login');
+    
+                $res = $client->post($url, [
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                    ],
+                    'body' => json_encode([
+                        'idToken' => $idToken,
+                    ])
+                ]);
+                
+                $userProfile = json_decode($res->getBody())->users[0];
+    
+                $user = \Flynsarmy\SocialLogin\Classes\UserManager::instance()->find(
+                    [
+                        'provider_id'    => 'Apple',
+                        'provider_token' => $userProfile->localId,
+                    ],
+                    [
+                        'token'           => $userProfile->localId,
+                        'email'           => $userProfile->email,
+                        'username'        => $userProfile->email,
+                        'name'            => $userProfile->displayName,
+                    ]
+                );
+                return $user->id;
+            }
 
         } catch (\Exception $e) {
             throw $e;
