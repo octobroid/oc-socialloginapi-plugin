@@ -1,6 +1,8 @@
 <?php namespace Octobro\SocialLoginAPI\Classes;
 
 use Auth;
+use RainLab\User\Models\User;
+
 class SocialLoginVerifier
 {
     public function verifyFacebook($user_id, $access_token)
@@ -126,21 +128,26 @@ class SocialLoginVerifier
                         'idToken' => $access_token,
                     ])
                 ]);
-                
+
                 $userProfile = json_decode($res->getBody())->users[0];
-    
-                $user = \Flynsarmy\SocialLogin\Classes\UserManager::instance()->find(
-                    [
-                        'provider_id'    => 'Phone',
-                        'provider_token' => $userProfile->localId,
-                    ],
-                    [
-                        'token'           => $userProfile->localId,
-                        'email'           => $userProfile->email,
-                        'username'        => $userProfile->email,
-                        'name'            => $userProfile->displayName
-                    ]
-                );
+                $phone       = preg_replace("/[^0-9]/", "", data_get($userProfile, 'phone'));
+
+                if(is_null($user = User::wherePhone($phone)->first())){
+                    $user = \Flynsarmy\SocialLogin\Classes\UserManager::instance()->find(
+                        [
+                            'provider_id'    => 'Phone',
+                            'provider_token' => data_get($userProfile, 'localId'),
+                            'phone'          => $phone
+                        ],
+                        [
+                            'token'           => data_get($userProfile, 'localId'),
+                            'email'           => data_get($userProfile, 'email'),
+                            'username'        => data_get($userProfile, 'email'),
+                            'name'            => data_get($userProfile, 'displayName', 'Electrizen')
+                        ]
+                    );
+                }
+
                 return $user->id;
             }
 
