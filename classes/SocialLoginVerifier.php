@@ -130,8 +130,8 @@ class SocialLoginVerifier
                 ]);
 
                 $userProfile = json_decode($res->getBody())->users[0];
-                $phone       = preg_replace("/[^0-9]/", "", data_get($userProfile, 'phone'));
-
+                $phone       = preg_replace("/[^0-9]/", "", data_get($userProfile, 'phoneNumber'));
+                
                 if(is_null($user = User::wherePhone($phone)->first())){
                     $user = \Flynsarmy\SocialLogin\Classes\UserManager::instance()->find(
                         [
