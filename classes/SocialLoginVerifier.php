@@ -174,12 +174,22 @@ class SocialLoginVerifier
                 ]);
                 
                 $userProfile = json_decode($res->getBody())->users[0];
+
+                $loginCredential = [
+                    'provider_id'    => 'Firebase',
+                    'provider_token' => $userProfile->localId,
+                ];
+
+                if (!filter_var($credential_user, FILTER_VALIDATE_EMAIL)) {
+                    $loginCredential['phone'] = $phone = $credential_user;
+
+                    if($email = $userProfile->email){
+                        $loginCredential['email'] = $email;   
+                    }
+                }
     
                 $user = \Flynsarmy\SocialLogin\Classes\UserManager::instance()->find(
-                    [
-                        'provider_id'    => 'Firebase',
-                        'provider_token' => $userProfile->localId,
-                    ],
+                    $loginCredential,
                     [
                         'token'           => $userProfile->localId,
                         'email'           => $userProfile->email,
@@ -187,6 +197,7 @@ class SocialLoginVerifier
                         'name'            => $userProfile->displayName,
                     ]
                 );
+
                 return $user->id;
             }
 
