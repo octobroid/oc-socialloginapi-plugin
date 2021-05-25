@@ -192,7 +192,7 @@ class SocialLoginVerifier
                 if (!filter_var($credential_user, FILTER_VALIDATE_EMAIL)) {
                     $phone                    = preg_replace("/[^0-9]/", "", $credential_user);
                     $loginCredential['phone'] = $phone;
-                    $userData['phone']        = $phone
+                    $userData['phone']        = $phone;
 
                     if($email = $userProfile->email){
                         $loginCredential['email'] = $email;
