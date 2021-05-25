@@ -157,7 +157,7 @@ class SocialLoginVerifier
         }
     }
 
-    public function verifyFirebase($email, $access_token)
+    public function verifyFirebase($credential_user, $access_token)
     {
         try {
             if(env('Firebase_Login') != null){
