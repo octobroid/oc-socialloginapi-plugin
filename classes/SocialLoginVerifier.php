@@ -180,22 +180,28 @@ class SocialLoginVerifier
                     'provider_token' => $userProfile->localId,
                 ];
 
+                $userData = [
+                    'token'           => $userProfile->localId,
+                    'email'           => $userProfile->email,
+                    'username'        => $userProfile->email,
+                    'name'            => $userProfile->displayName,
+                ];
+
+
+                // Conditional if credential is not email, we assume that it is phone number
                 if (!filter_var($credential_user, FILTER_VALIDATE_EMAIL)) {
-                    $loginCredential['phone'] = $phone = $credential_user;
+                    $phone                    = preg_replace("/[^0-9]/", "", $credential_user);
+                    $loginCredential['phone'] = $phone;
+                    $userData['phone']        = $phone
 
                     if($email = $userProfile->email){
-                        $loginCredential['email'] = $email;   
+                        $loginCredential['email'] = $email;
                     }
                 }
     
                 $user = \Flynsarmy\SocialLogin\Classes\UserManager::instance()->find(
                     $loginCredential,
-                    [
-                        'token'           => $userProfile->localId,
-                        'email'           => $userProfile->email,
-                        'username'        => $userProfile->email,
-                        'name'            => $userProfile->displayName,
-                    ]
+                    $userData
                 );
 
                 return $user->id;
