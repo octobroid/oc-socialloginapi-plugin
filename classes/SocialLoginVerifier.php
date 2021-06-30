@@ -203,6 +203,11 @@ class SocialLoginVerifier
                     $loginCredential,
                     $userData
                 );
+                
+                if(!filter_var($credential_user, FILTER_VALIDATE_EMAIL)){
+                    $user->phone = $phone;
+                    $user->save();
+                }
 
                 return $user->id;
             }
