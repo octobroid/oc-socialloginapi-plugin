@@ -1,6 +1,6 @@
 <?php namespace Octobro\SocialLoginAPI\Classes;
 
-use Auth;
+use Auth, Event;
 use RainLab\User\Models\User;
 
 class SocialLoginVerifier
@@ -208,6 +208,8 @@ class SocialLoginVerifier
                     $user->phone = $phone;
                     $user->save();
                 }
+                
+                Event::fire('octobro.sociallogin.firebase_verify', [$user]);
 
                 return $user->id;
             }
